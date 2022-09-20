@@ -63,7 +63,7 @@ impl ChessBoard
             board[0o77] = ChessPiece::WRook;
         }
 
-        ChessBoard { w_lock: w_lock, board: board, 
+        ChessBoard { w_lock: w_lock, board: board, _w_king: 0o74, _b_king: 0o04,
             _state: ChessState::On, _piece_count: _piece_count }
 
     }
@@ -96,9 +96,59 @@ impl ChessBoard
     }
 
     // Changges 
-    fn __update_state(&mut self)
+    fn __check_state(&mut self)
     {
-        
+        let _wk_coords: ChessPos = ChessPos::from(self._w_king);
+        let _bk_coords: ChessPos = ChessPos::from(self._b_king);
+        // If it was black's turn check if the white king is threatened
+        if self.w_lock
+        {
+
+            // Is the king threated vertically or horisontally by a rook, queen or a king with a dx==1?
+            let mut _threat_h: bool = false;
+            let mut _threat_v: bool = false;
+            {
+                for i in 0..7 as u8
+                {
+                    let __check_x: u8 = i;
+                    let __check_y: u8 = _wk_coords.y;
+                    let __check_coords: u8 = ChessPos::conv(__check_x, __check_y);
+
+                    let _el: ChessPiece = self.board[__check_coords as usize];
+                    _threat_h |= _el == ChessPiece::BQueen || _el == ChessPiece::BRook;
+                    _threat_h |= _el == ChessPiece::BKing && i8::abs(i as i8 - _wk_coords.x as i8) == 1;
+                }
+
+                for j in 0..7 as u8
+                {
+                    let __check_x: u8 = _wk_coords.x;
+                    let __check_y: u8 = j;
+                    let __check_coords: u8 = ChessPos::conv(__check_x, __check_y);
+
+                    let _el: ChessPiece = self.board[__check_coords as usize];
+                    _threat_v |= _el == ChessPiece::BQueen || _el == ChessPiece::BRook;
+                    _threat_v |= _el == ChessPiece::BKing && i8::abs(j as i8 - _wk_coords.y as i8) == 1;
+                }
+            }
+
+            let _threat_diag1: bool = false;
+            {
+                let _max_d: u8 = u8::max(_bk_coords.x, _bk_coords.y);
+                let _border_raw: u8 = ChessPos::conv( (_bk_coords.x as i8 - _max_d as i8) as u8,
+                                    (_bk_coords.y as i8 + _max_d as i8) as u8);
+
+                let _border: ChessPos = ChessPos::from(_border_raw);
+                for i in 0..u8::max(_border.x, _border.y)
+                {
+
+                }
+            }
+
+
+            return;
+        }
+
+        // Else check the black king
     }
 
     // Checks if the given pathway is empty.

@@ -99,6 +99,9 @@ pub struct ChessBoard
     // Real men do 1d array and interpretate it as a 2d array
     board: [ChessPiece; 64],
 
+    _w_king: u8,
+    _b_king: u8,
+
     // Current game state
     _state: ChessState,    
     // Having a count on the chess pieces without having to count
