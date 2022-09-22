@@ -374,6 +374,9 @@ impl ChessBoard
 
 
         let k_threat_coords: ChessPos = ChessPos::from(k_threat_raw);
+        let dx: i8 = k_threat_coords.x as i8 - k_coords.x as i8;
+        let dy: i8 = k_threat_coords.y as i8 - k_coords.y as i8;
+
         let _threat: ChessPiece = self.board[k_threat_raw as usize];
 
         // Attacks by these pieces cannot be blocked in any way - ignore en passant for king
@@ -387,14 +390,12 @@ impl ChessBoard
             return;
         }
 
-
-        // let _x_kt_range: Range<u8> = ChessPos::from(k_threat_pos).x
         let mut can_block_threat: bool = false;
-        for i in 0..64
+        for i in 0..64 as u8
         {
             // Yeah bad brute force - sorting out all pieces and checking if they
             // can block the attack on the king
-            let _el: ChessPiece = self.board[i];
+            let _el: ChessPiece = self.board[i as usize];
             if !_el.is_enemy_to(_threat)
             {
                 continue;
@@ -404,6 +405,7 @@ impl ChessBoard
 
             match _el
             {
+                ChessPiece::Empty => {return;},
                 ChessPiece::WPawn | ChessPiece::BPawn => {
                     let x: i8 = _pos.x as i8;
                     let mut y: i8 = _pos.y as i8;
@@ -421,12 +423,68 @@ impl ChessBoard
                     
                 },
                 ChessPiece::WRook | ChessPiece::BRook => {
-                    if _threat==ChessPiece::WRook||_threat==ChessPiece::BRook
+                    // Straight linear pathway check
+                    if (dx==0 && dy!=0) || (dx!=0 && dy==0)
                     {
-                        
+                        // Test coordinates to check if the target Rook can move
+                        // and block the attack; same y-coordinate 
+                        let test_v: ChessPos = ChessPos::from(ChessPos::conv(
+                            _pos.x, k_threat_coords.y
+                        ));
+
+                        // Test coordinates to check if the target Rook can move
+                        // and block the attack; same x-coordinate
+                        let test_h: ChessPos = ChessPos::from(ChessPos::conv(
+                            k_threat_coords.x, _pos.y
+                        ));
+
+                        let h_between: bool = test_h.between(k_threat_coords, k_coords) &&
+                                                self.__verify_move(i, ChessPos::conv(k_threat_coords.x, _pos.y));
+                        let v_between: bool = test_v.between(k_threat_coords, k_coords) &&
+                                                self.__verify_move(i, ChessPos::conv(_pos.x, k_threat_coords.x));
+
+                        can_block_threat |= h_between || v_between;
+                        return;
                     }
+
+                    // derivative of the diagonal with respect to y, either -1 or +1
+                    // its going to be used to calculate the collision point for a test object
+                    let diag_k_y: i8 = (k_threat_coords.x as i8-k_coords.x as i8)/(k_threat_coords.y as i8 - k_coords.y as i8);
+                    // same derivative of the diagonal but with respect to x
+                    let diag_k_x: i8 = 1/diag_k_y;
+
+                    // basically calculate the x value from the derivative based linear
+                    // function, given the value y
+                    let shift_x: i8 = diag_k_y*(_pos.y as i8 - k_coords.y as i8);
+                    // ...and transform it to 'easily' handled coordinates
+                    let test_h: ChessPos = ChessPos::from(ChessPos::conv(
+                        (k_coords.x as i8+shift_x) as u8,_pos.y
+                    ));
+
+                    // Same as above but calculate the y value from the derivative based
+                    // linear function, but given the value x
+                    let shift_y: i8 = diag_k_x*(_pos.x as i8 - k_coords.x as i8);
+                    let test_v: ChessPos = ChessPos::from(ChessPos::conv(
+                        _pos.x, (k_coords.y as i8+shift_y) as u8
+                    ));
+
+                    // Verify if the target rook is between the elements and that moves
+                    // are actually possible to make
+                    let verify_h: bool = test_h.between(k_coords, k_threat_coords) &&
+                                            self.__verify_move(i, test_h.raw());
+                    let verify_v: bool = test_v.between(k_coords, k_threat_coords) &&
+                                            self.__verify_move(i, test_v.raw());
+
+                    can_block_threat |= verify_v || verify_h;
                 }
-            }
+            },
+            ChessPiece::WBishop | ChessPiece::BBishop => {
+                // Check if the attack pathway is straight
+                if (dx==0 && dy!=0) || (dx!=0 && dy==0)
+                {
+
+                }
+            },
         }
         
     }
