@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 // Map every piece as an u8 for a more
 // efficient piece checking later on
-#[derive(Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
+#[derive(Debug, Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
 #[repr(u8)]
 pub enum ChessPiece
 {
@@ -57,6 +57,7 @@ pub enum ChessPathway
     Gamma = 2,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(u8)]
 pub enum ChessState
 {
@@ -66,7 +67,7 @@ pub enum ChessState
     Aborted = 3
 }
 
-
+#[derive(PartialEq, Clone, Copy)]
 pub struct ChessPos
 {
     x: u8,
@@ -91,6 +92,46 @@ impl ChessPos
         assert!(x>7 || y>7, "Position outside of bounds");
         return y*8+x;
     }
+
+    // This function is equivalent to `self ∈ (a,b)`
+    pub fn between(&self, a: ChessPos, b: ChessPos) -> bool
+    {
+        let dx: u8 = i8::abs(a.x as i8 - b.x as i8) as u8;
+        let dy: u8 = i8::abs(a.y as i8 - b.y as i8) as u8;
+
+        //`a` and `b` must be placed either straight or diagonally
+        let _diag: bool = dx==dy;
+        let _straight: bool = dx==0 && dy>0 || dx>0 && dy==0;
+        assert!(_diag || _straight, "Elements `a` and `b` must be placed diagonally or straight");
+    
+        // Does not include the start and end points
+        if *self==a || *self == b
+        {
+            return false;
+        }
+
+        let h1: i8 = i8::signum(self.x as i8 - a.x as i8);
+        let h2: i8 = i8::signum(self.x as i8 - b.x as i8);
+
+        let v1: i8 = i8::signum(self.y as i8 - a.y as i8);
+        let v2: i8 = i8::signum(self.y as i8 - b.y as i8);
+        if _straight
+        {
+
+            // If the block is valid horisontally or vertically
+            let _in_h: bool = h1!=h2 && dy==0 && self.y==a.x;
+            let _in_v: bool = v1!=v2 && dx==0 && self.x==a.x;
+
+            return _in_h || _in_v;
+        }
+
+        // Testing if between `a` and `b` in a diagonal pathway
+        let _rel_dx: i8 = self.x as i8 - a.x as i8;
+        let _rel_dy: i8 = self.y as i8 - a.y as i8;
+        let _in_diag: bool = h1!=h2 && v1!=v2 && _rel_dx == _rel_dy;
+
+        return _in_diag;
+    }
 }
 
 pub struct ChessBoard
@@ -111,4 +152,4 @@ pub struct ChessBoard
 
 mod chess_logic;
 #[cfg(test)]
-mod global_tests;
+mod pub_tests;
