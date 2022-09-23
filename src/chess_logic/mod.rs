@@ -480,9 +480,41 @@ impl ChessBoard
             },
             ChessPiece::WBishop | ChessPiece::BBishop => {
                 // Check if the attack pathway is straight
+                // aka straight line - diagonal 'collision' check
                 if (dx==0 && dy!=0) || (dx!=0 && dy==0)
                 {
+                    // Simple algebraic checking
+                    // First of all the bishop can in 2 directions
+                    // Described by the equations:
+                    // x+y_0-x_0
+                    // &&
+                    // -x+y_0+x_0
+                    // Where x_0 and y_0 are the coordinates of the
+                    // bishop.
 
+                    // If the attack pathway is straight vertical
+                    // it's pretty simple to check if the bishop
+                    // can move in a way to block the attack.
+
+                    let _y1: u8 = k_coords.x + (_pos.y as i8 - _pos_x as i8) as u8;
+                    let _y2: u8 = ((_pos.y+_pos.x) as i8)-(k_coords.x as i8) as u8;
+                    let test_v1: ChessPos = ChessPos::from(ChessPos::conv(
+                        k_coords.x, _y1
+                    ));
+                    let test_v2: ChessPos = ChessPos::from(ChessPos::conv(
+                        k_coords.x, _y2
+                    ));
+
+                    let _x1: u8 = (k_coords.y as i8 - _pos.x as i8 + _pos.y as i8) as u8;
+                    let test_h1: bool = 
+                    let test_h2: bool;
+
+                    // Check if the function pos, is inside the attack pathway or not
+                    let mut valid_v: bool = dx==0;
+                    valid_v &= test_v1.between(k_coords, k_threat_coords) ||
+                                test_v2.between(k_coords, k_threat_coords);
+                    
+                    let mut valid_h: bool = dy==0;
                 }
             },
         }
