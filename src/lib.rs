@@ -1,5 +1,16 @@
 use std::collections::HashMap;
 
+#[derive(Clone, Copy)]
+pub enum ChessPieceType
+{
+    King,
+    Queen,
+    Rook,
+    Bishop,
+    Knight,
+    Pawn
+}
+
 // Map every piece as an u8 for a more
 // efficient piece checking later on
 #[derive(Debug, Copy, Clone, Eq, Hash, PartialEq, PartialOrd)]
@@ -76,9 +87,13 @@ pub struct ChessPos
 
 impl ChessPos
 {
-    pub fn from(pos: u8) -> ChessPos
+    pub fn from(pos: u8, ignore_bounds: bool) -> ChessPos
     {
-        assert!(pos>63, "Position outside of bounds");
+        if !ignore_bounds
+        {
+            assert!(pos>63, "Position outside of bounds");
+        }
+        
         ChessPos{x: pos % 8, y: pos/8}
     }
 
@@ -94,7 +109,7 @@ impl ChessPos
     }
 
     // This function is equivalent to `self ∈ (a,b)`
-    pub fn between(&self, a: ChessPos, b: ChessPos) -> bool
+    pub fn between(&self, a: ChessPos, b: ChessPos, ignore_shape: bool) -> bool
     {
         let dx: u8 = i8::abs(a.x as i8 - b.x as i8) as u8;
         let dy: u8 = i8::abs(a.y as i8 - b.y as i8) as u8;
@@ -102,6 +117,7 @@ impl ChessPos
         //`a` and `b` must be placed either straight or diagonally
         let _diag: bool = dx==dy;
         let _straight: bool = dx==0 && dy>0 || dx>0 && dy==0;
+        if !(_diag || _straight) && ignore_shape { return false; }
         assert!(_diag || _straight, "Elements `a` and `b` must be placed diagonally or straight");
     
         // Does not include the start and end points
@@ -142,6 +158,8 @@ pub struct ChessBoard
 
     _w_king: u8,
     _b_king: u8,
+
+    _default_promotion: ChessPieceType,
 
     // Current game state
     _state: ChessState,    
