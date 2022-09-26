@@ -630,8 +630,8 @@ impl ChessBoard
         // are created in Rust
         assert!(from != to, "Given pathway: from = to");
 
-        let __r_dx: i8 = (f.x - t.x) as i8;
-        let __r_dy: i8 = (f.y - t.y) as i8;
+        let __r_dx: i8 = t.x as i8 - f.x as i8;
+        let __r_dy: i8 = t.y as i8 - f.y as i8;
 
         // |__r_dx|, |__r_dy|
         let dx: i8 = i8::abs( __r_dx );
@@ -715,8 +715,13 @@ impl ChessBoard
         let f: ChessPos = ChessPos::from(from as u8, false);
         let t: ChessPos = ChessPos::from(to as u8, false);
 
-        let _abs_dx: u8     = i8::abs( (f.x as i8) - (t.x as i8) ) as u8;
-        let _abs_dy: u8     = i8::abs( (f.y as i8) - (t.y as i8) ) as u8;
+        let fx: i8 = f.x as i8;
+        let fy: i8 = f.y as i8;
+        let tx: i8 = t.x as i8;
+        let ty: i8 = t.y as i8;
+
+        let _abs_dx: u8     = i8::abs( fx - tx ) as u8;
+        let _abs_dy: u8     = i8::abs( fy - ty ) as u8;
 
         let from_el: ChessPiece = self.board[from as usize];
 
@@ -733,10 +738,10 @@ impl ChessBoard
                 return false;
             },
             ChessPiece::WPawn => {
-                let _is_1down: bool = f.x==t.x && t.y-f.y==1;
-                let _is_2down: bool = f.x==t.x && t.y-f.y==2;
-                let _is_ldiag: bool = f.x-t.x==1 && t.y-f.y==1;
-                let _is_rdiag: bool = t.x-f.x==1 && t.y-f.y==1;
+                let _is_1down: bool = fx==tx && ty-fy==1;
+                let _is_2down: bool = fx==tx && ty-fy==2;
+                let _is_ldiag: bool = fx-tx==1 && ty-fy==1;
+                let _is_rdiag: bool = tx-fx==1 && ty-fy==1;
 
                 // If the given move is not in the list of the allowed onces..
                 assert!(_is_1down || _is_2down || _is_ldiag || _is_rdiag,
@@ -745,17 +750,17 @@ impl ChessBoard
                 // Are the moves allowed?
                 let _v_1down: bool  = _is_1down && to_el.is_empty();
                 let _v_2down: bool  = _is_2down && self.__empty_pathway(from, to, 
-                    false,ChessPathway::Straight) && f.y==1; 
+                    false,ChessPathway::Straight) && fy==1; 
                 let _v_ldiag: bool  = _is_ldiag && to_el.is_enemy_to(from_el);
                 let _v_rdiag: bool  = _is_rdiag && to_el.is_enemy_to(from_el);
 
                 return _v_1down || _v_2down || _v_ldiag || _v_rdiag;
             },
             ChessPiece::BPawn => {
-                let _is_1up: bool   = f.x==t.x && f.y-t.y==1;
-                let _is_2up: bool   = f.x==t.x && f.y-t.y==2;
-                let _is_ldiag: bool = f.x-t.x==1 && f.y-t.y==1;
-                let _is_rdiag: bool = t.x-f.x==1 && f.y-t.y==1;
+                let _is_1up: bool   = fx==tx && fy-ty==1;
+                let _is_2up: bool   = fx==tx && fy-ty==2;
+                let _is_ldiag: bool = fx-tx==1 && fy-ty==1;
+                let _is_rdiag: bool = tx-fx==1 && fy-ty==1;
 
                 assert!(_is_1up || _is_2up || _is_ldiag || _is_rdiag,
                     "Illegal move for a black pawn");
@@ -784,8 +789,6 @@ impl ChessBoard
                 return _v_h || _v_v;
             },
             ChessPiece::BBishop | ChessPiece::WBishop => {
-                let _abs_dx: u8     = i8::abs( (f.x as i8) - (t.x as i8) ) as u8;
-                let _abs_dy: u8     = i8::abs( (f.y as i8) - (t.y as i8) ) as u8;
 
                 // If the move is not diagonal, raise an error
                 assert!(_abs_dx==_abs_dy, "Illegal move for a bishop");
