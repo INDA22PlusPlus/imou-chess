@@ -91,7 +91,7 @@ impl ChessPos
     {
         if !ignore_bounds
         {
-            assert!(pos>63, "Position outside of bounds");
+            assert!(pos<64, "Position outside of bounds");
         }
         
         ChessPos{x: pos % 8, y: pos/8}
@@ -104,7 +104,7 @@ impl ChessPos
 
     pub fn conv(x: u8, y: u8) -> u8
     {
-        assert!(x>7 || y>7, "Position outside of bounds");
+        assert!(x<8 && y<8, "Position outside of bounds");
         return y*8+x;
     }
 
@@ -116,7 +116,7 @@ impl ChessPos
 
         //`a` and `b` must be placed either straight or diagonally
         let _diag: bool = dx==dy;
-        let _straight: bool = dx==0 && dy>0 || dx>0 && dy==0;
+        let _straight: bool = (dx==0 && dy>0) || (dx>0 && dy==0);
         if !(_diag || _straight) && ignore_shape { return false; }
         assert!(_diag || _straight, "Elements `a` and `b` must be placed diagonally or straight");
     
@@ -135,7 +135,7 @@ impl ChessPos
         {
 
             // If the block is valid horisontally or vertically
-            let _in_h: bool = h1!=h2 && dy==0 && self.y==a.x;
+            let _in_h: bool = h1!=h2 && dy==0 && self.y==a.y;
             let _in_v: bool = v1!=v2 && dx==0 && self.x==a.x;
 
             return _in_h || _in_v;
