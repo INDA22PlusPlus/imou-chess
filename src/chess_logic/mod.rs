@@ -7,11 +7,23 @@ mod tests;
 
 impl ChessBoard
 {
+    pub fn get_state(&self) -> ChessState
+    {
+        return self._state;
+    }
+
     // Get the board
     // Public
     pub fn get_board(&self) -> [ChessPiece; 64]
     {
         return self.board;
+    }
+
+    // If white's turn
+    // Public
+    pub fn white_turn(&self) -> bool
+    {
+        return !self.w_lock;
     }
 
     // Get the piece from the board based on the coordinates
@@ -117,14 +129,23 @@ impl ChessBoard
     pub fn drag(&mut self, from: u8, to: u8)
     {
         // If the game has ended do not allow the game to continue;
-        assert!(self._state==ChessState::On);
+        // assert!(self._state==ChessState::On);
+
+        // A kinder version of assert
+        if self._state != ChessState::On
+        {
+            return;
+        }
 
         // Checks if the move is allowed, takes in account if for example
         // a pawn can 'eat' a enemy piece by taking a straight step
         if !(self.__verify_move(from, to))
         {
             // Raise error that the move isn't allowed
-            assert!(false, "Illegal move");
+            // assert!(false, "Illegal move");
+
+            // Just exit if cannot do a move
+            return;
         }
 
         let to_el: ChessPiece = self.board[to as usize];
@@ -642,7 +663,8 @@ impl ChessBoard
 
         // I have no energy and time in researching on how custom exceptions
         // are created in Rust
-        assert!(from != to, "Given pathway: from = to");
+        // assert!(from != to, "Given pathway: from = to");
+        if from == to { return false; }
 
         let __r_dx: i8 = t.x as i8 - f.x as i8;
         let __r_dy: i8 = t.y as i8 - f.y as i8;
@@ -674,7 +696,8 @@ impl ChessBoard
         match path
         {
             ChessPathway::Diagonal => {
-                assert!(dx==dy, "Given pathway is not diagonal");
+                // assert!(dx==dy, "Given pathway is not diagonal");
+                if dx!=dy { return false; }
 
                 for i in 1..(dx-1)
                 {
@@ -683,17 +706,16 @@ impl ChessBoard
                     let __coords: u8 = ChessPos::conv(__check_x, __check_y);
 
                     let _el: ChessPiece = self.board[__coords as usize];
-                    if !_el.is_empty()
-                    {
-                        return false;
-                    }
+                    if !_el.is_empty() { return false; }
                 }
             },
 
             ChessPathway::Straight => {
                 let v_case: bool = (dx == 0) && (dy > 0);
                 let h_case: bool = (dx > 0) && (dy == 0);
-                assert!(v_case || h_case, "Given pathway is not straight");
+                // assert!(v_case || h_case, "Given pathway is not straight");
+
+                if !(v_case || h_case) { return false; }
 
                 // If diagonal, either dx or dy is 0
                 for i in 1..i8::max(dy-1, dx-1)
@@ -703,15 +725,14 @@ impl ChessBoard
                     let __y: u8 = ((f.y as i8)+i*dy_sign*(v_case as i8)) as u8;
                     let _el: ChessPiece = self.board[ChessPos::conv(__x, __y) as usize];
 
-                    if !_el.is_empty()
-                    {
-                        return false;
-                    }
+                    if !_el.is_empty() { return false; }
                 }
             },
             ChessPathway::Gamma => {
                 let gamma_check: bool = (dx == 2 && dy == 1) || (dx == 1 && dy == 2);
-                assert!(gamma_check, "Given pathway is not of type gamma");
+                // assert!(gamma_check, "Given pathway is not of type gamma");
+
+                if !gamma_check { return false; }
             }
         }
         return valid_le;
@@ -721,7 +742,8 @@ impl ChessBoard
     fn __verify_move(&mut self, from: u8, to: u8) -> bool
     {
         // Cannot move a piece to the same location
-        assert!(from != to, "Given pathway: from = to");
+        // assert!(from != to, "Given pathway: from = to");
+        if from == to { return false; }
 
         // `ChessPos` constructor automatically checks if position
         // is inside the chess board or not. If not, it asserts an
@@ -741,14 +763,15 @@ impl ChessBoard
 
     
         let _wrong_color: bool = from_el.is_black() == self.w_lock;
-        assert!(_wrong_color, "Illegal move, wrong color");
+        // assert!(_wrong_color, "Illegal move, wrong color");
+        if !_wrong_color { return false; }
 
         let to_el: ChessPiece = self.board[to as usize];
 
         match from_el {
             // Raise error when trying to move an empty piece
             ChessPiece::Empty => {
-                assert!(false, "Illegal move");
+                // assert!(false, "Illegal move");
                 return false;
             },
             ChessPiece::WPawn => {
@@ -758,8 +781,10 @@ impl ChessBoard
                 let _is_rdiag: bool = tx-fx==1 && ty-fy==1;
 
                 // If the given move is not in the list of the allowed onces..
-                assert!(_is_1down || _is_2down || _is_ldiag || _is_rdiag,
-                    "Illegal move for a white pawn");
+                // assert!(_is_1down || _is_2down || _is_ldiag || _is_rdiag,
+                //     "Illegal move for a white pawn");
+
+                if !(_is_1down || _is_2down || _is_ldiag || _is_rdiag) { return false; }
 
                 // Are the moves allowed?
                 let _v_1down: bool  = _is_1down && to_el.is_empty();
@@ -776,8 +801,10 @@ impl ChessBoard
                 let _is_ldiag: bool = fx-tx==1 && fy-ty==1;
                 let _is_rdiag: bool = tx-fx==1 && fy-ty==1;
 
-                assert!(_is_1up || _is_2up || _is_ldiag || _is_rdiag,
-                    "Illegal move for a black pawn");
+                // assert!(_is_1up || _is_2up || _is_ldiag || _is_rdiag,
+                //     "Illegal move for a black pawn");
+
+                if !(_is_1up || _is_2up || _is_ldiag || _is_rdiag) { return false; }
                 
                 let _v_1up: bool    = _is_1up && to_el.is_empty();
                 let _v_2up: bool    = _is_2up && self.__empty_pathway(from, to, 
@@ -793,7 +820,9 @@ impl ChessBoard
                 let _is_v: bool     = _abs_dx == 0 && _abs_dy > 0;
 
                 // If not either a horisontal or vertical drag, raise an error
-                assert!(_is_h || _is_v, "Illegal move for a rook");
+                // assert!(_is_h || _is_v, "Illegal move for a rook");
+
+                if !(_is_h || _is_v) { return false; }
 
                 let _v_h: bool      = _is_h && self.__empty_pathway(from, to, 
                     true,ChessPathway::Straight);
@@ -805,7 +834,9 @@ impl ChessBoard
             ChessPiece::BBishop | ChessPiece::WBishop => {
 
                 // If the move is not diagonal, raise an error
-                assert!(_abs_dx==_abs_dy, "Illegal move for a bishop");
+                // assert!(_abs_dx==_abs_dy, "Illegal move for a bishop");
+
+                if _abs_dx!=_abs_dy { return false; }
 
                 return self.__empty_pathway(from, to, true, 
                     ChessPathway::Diagonal);
@@ -814,7 +845,9 @@ impl ChessBoard
                 let _is_hgamma: bool= _abs_dx==2 && _abs_dy==1;
                 let _is_vgamma: bool= _abs_dx==1 && _abs_dy==2;
 
-                assert!(_is_hgamma || _is_vgamma, "Illegal move for a knight");
+                // assert!(_is_hgamma || _is_vgamma, "Illegal move for a knight");
+
+                if !(_is_hgamma || _is_vgamma) { return false; }
                 
                 // `ChessBoard::__empty_pathway` in this case is just going to look
                 // if `to_el` is an enemy or not, but anyways.. I just follow the
@@ -825,7 +858,8 @@ impl ChessBoard
             },
             ChessPiece::BKing | ChessPiece::WKing => {
                 // to==from is already checked in the begining of this method
-                assert!(_abs_dx < 2 && _abs_dy < 2, "Illegal move for a king");
+                // assert!(_abs_dx < 2 && _abs_dy < 2, "Illegal move for a king");
+                if !(_abs_dx < 2 && _abs_dy < 2) { return false; }
                 return to_el.is_enemy_to(from_el);
             },
             ChessPiece::BQueen | ChessPiece::WQueen => {
@@ -833,7 +867,9 @@ impl ChessBoard
                 let _is_h: bool     = _abs_dx>0 && _abs_dy==0;
                 let _is_v: bool     = _abs_dx==0 && _abs_dy>0;
 
-                assert!(_is_diag || _is_h || _is_v, "Illegal move for a queen");
+                // assert!(_is_diag || _is_h || _is_v, "Illegal move for a queen");
+
+                if !(_is_diag || _is_h || _is_v) { return false;}
                 
                 // Couldn't escape an if statement ;(
                 if _is_diag
