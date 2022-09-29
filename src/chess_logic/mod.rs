@@ -7,6 +7,20 @@ mod tests;
 
 impl ChessBoard
 {
+    // Get the board
+    // Public
+    pub fn get_board(&self) -> [ChessPiece; 64]
+    {
+        return self.board;
+    }
+
+    // Get the piece from the board based on the coordinates
+    // Public
+    pub fn get_piece(&self, coords: u8) -> ChessPiece
+    {
+        return self.board[coords as usize];
+    }
+
     // Initialize a chess board with pieces on default positions
     pub fn init_position() -> ChessBoard
     {
