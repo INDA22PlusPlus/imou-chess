@@ -699,7 +699,7 @@ impl ChessBoard
                 // assert!(dx==dy, "Given pathway is not diagonal");
                 if dx!=dy { return false; }
 
-                for i in 1..(dx-1)
+                for i in 1..=(dx-1)
                 {
                     let __check_x: u8 = ((f.x as i8) + i*dx_sign) as u8;
                     let __check_y: u8 = ((f.y as i8) + i*dy_sign) as u8;
@@ -716,9 +716,9 @@ impl ChessBoard
                 // assert!(v_case || h_case, "Given pathway is not straight");
 
                 if !(v_case || h_case) { return false; }
-
+            
                 // If diagonal, either dx or dy is 0
-                for i in 1..i8::max(dy-1, dx-1)
+                for i in 1..=i8::max(dy-1, dx-1)
                 {
                     // As you see I love branchless programming
                     let __x: u8 = ((f.x as i8)+i*dx_sign*(h_case as i8)) as u8;
