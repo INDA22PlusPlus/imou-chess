@@ -221,9 +221,10 @@ impl ChessBoard
         let _straight_attack: Vec<ChessPiece> = vec![_rook, _queen];
         let _diagonal_attack: Vec<ChessPiece> = vec![_bishop, _queen];
 
-        // Check if vertical line above the block threatens the block
+        // Check if horisontal line after the block threatens the block
         for i in 1..=(7-coords.x)
         {
+            
             let enemy_coords: u8 = ChessPos::conv(coords.x+i, coords.y);
             let _el: ChessPiece = self.board[enemy_coords as usize];
             if _el == _king && i == 1 { return ChessPos::conv(coords.x+i, coords.y) }
@@ -233,7 +234,7 @@ impl ChessBoard
             if !_el.is_empty() { return enemy_coords; }
         }
 
-        // Check if vertical line below the block threatens the block
+        // Check if horizontal line before the block threatens the block
         for i in 1..=coords.x
         {
             let enemy_coords: u8 = ChessPos::conv(coords.x-i, coords.y);
@@ -246,7 +247,7 @@ impl ChessBoard
         }
 
         /////////////////////////////////////////
-        // Check if horisontal line before the block threatens the block
+        // Check if vertical line before the block threatens the block
         for i in 1..=coords.y
         {
             let enemy_coords: u8 = ChessPos::conv(coords.x, coords.y-i);
@@ -258,7 +259,7 @@ impl ChessBoard
             if !_el.is_empty() { return enemy_coords; }
         }
 
-        // Check if horisontal line after the block threatens the block
+        // Check if vertical line above the block threatens the block
         for i in 1..=(7-coords.y)
         {
             let enemy_coords: u8 = ChessPos::conv(coords.x, coords.y+i);
@@ -395,6 +396,9 @@ impl ChessBoard
             self._state = ChessState::Stalemate;
             return;
         }
+
+        // If not stalemate, but no threat - just exit
+        if k_threat_raw == 64 {return;}
 
         // Check whether it is possible to eliminate the threat to the king
         // if it is possible - just exit
@@ -720,9 +724,11 @@ impl ChessBoard
                 // If diagonal, either dx or dy is 0
                 for i in 1..=i8::max(dy-1, dx-1)
                 {
+                    
                     // As you see I love branchless programming
                     let __x: u8 = ((f.x as i8)+i*dx_sign*(h_case as i8)) as u8;
                     let __y: u8 = ((f.y as i8)+i*dy_sign*(v_case as i8)) as u8;
+
                     let _el: ChessPiece = self.board[ChessPos::conv(__x, __y) as usize];
 
                     if !_el.is_empty() { return false; }
@@ -735,6 +741,7 @@ impl ChessBoard
                 if !gamma_check { return false; }
             }
         }
+        
         return valid_le;
     }
 
@@ -860,7 +867,7 @@ impl ChessBoard
                 // to==from is already checked in the begining of this method
                 // assert!(_abs_dx < 2 && _abs_dy < 2, "Illegal move for a king");
                 if !(_abs_dx < 2 && _abs_dy < 2) { return false; }
-                return to_el.is_enemy_to(from_el);
+                return !to_el.is_enemy_to(from_el);
             },
             ChessPiece::BQueen | ChessPiece::WQueen => {
                 let _is_diag: bool  = _abs_dx==_abs_dy;
